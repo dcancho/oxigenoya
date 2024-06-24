@@ -53,3 +53,18 @@ class Hospital:
                 if connection.is_connected():
                     cursor.close()  # Cerrar el cursor
                     connection.close()
+                    
+    def descontar_oxigeno(self, id_hospital, cant_oxi):
+        connection = Conexion()
+        if connection is not None:
+            try:
+                cursor = connection.cursor()
+                query = "update hospitales set oxigeno_disponible = oxigeno_disponible - %s where id = %s"
+                values = (cant_oxi, id_hospital)
+                cursor.execute(query, values)
+                connection.commit()
+            except Error as e:
+                print(f"Error al insertar en MySQL: {e}")
+            finally:
+                if connection.is_connected():
+                    cursor.close()
