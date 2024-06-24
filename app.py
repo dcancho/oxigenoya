@@ -35,7 +35,6 @@ app = Flask(__name__)
 
 @app.route('/where-patient', methods=['GET'])
 def mejor_hospital():
-    # Get 'dni' from query parameters
     dni = request.args.get('dni', default=None, type=str)
     if dni is None:
         return jsonify({"error": "No DNI provided"}), 400
@@ -46,134 +45,80 @@ def mejor_hospital():
         return jsonify({"error": "Hospital not found"}), 404
     
     return jsonify(
-        {	"id": hosp_inter.id,
-			"cant_oxigeno": 2,
+        {    "id": hosp_inter.id,
+            "cant_oxigeno": 2,
             "pacienteData": {
             "id": hosp_inter.id,
-            "nombre": hosp_inter.nombres,
-            "apellidos": hosp_inter.apellidos,
-			},
-			"hospitalData" : {
+            "nombre": hosp_inter.nombre,
+            "apellidos": hosp_inter.nombre,
+            },
+            "hospitalData" : {
                 "id_hospital": hosp_inter.id,
-				"nombre": hosp_inter.nombre, 
+                "nombre": hosp_inter.nombre, 
                 "direccion": hosp_inter.direccion,
                 "distrito": hosp_inter.distrito,
                 "oxigeno_disponible": hosp_inter.oxi_disp,
                 "costo_oxi": hosp_inter.cost_oxi,
-				"latitud": hosp_inter.lat, 
-				"longitud": hosp_inter.lon
+                "latitud": hosp_inter.lat, 
+                "longitud": hosp_inter.lon
          }
-		}
+        }
         )
 
+
+@app.route('/obtener-proveedor', methods=['GET'])
+def obtener_proveedor():
+    dni = request.args.get('dni', default=None, type=str)
+    if dni is None:
+        return jsonify({"error": "No DNI provided"}), 400
+    
+    hosp_inter = controller.get_hospital_by_dni(dni)
+    
+    if hosp_inter is None:
+        return jsonify({"error": "Hospital not found"}), 404
+    
+    hosp_inter = controller.get_hospital_by_dni(dni)
+    hospitales_distrito = controller.get_hospitales_by_district(hosp_inter.distrito)
+    for hospital in hospitales_distrito:
+        grafo.add_node(hospital)
+    grafo.crear_arista()
+    hospital_mejor_precio = grafo.breadth_first_search(hosp_inter.nombre,set())
+    return jsonify(
+        {
+            "nombre": hospital_mejor_precio.nombre,
+            "costo_oxigeno": hospital_mejor_precio.cost_oxi,
+            "latitud": hospital_mejor_precio.lat,
+            "longitud": hospital_mejor_precio.lon
+         }
+    )
+
+@app.route('/obtener-proveedor-ampliado', methods=['GET'])
+def obtener_proveedor_ampliado():
+    dni = request.args.get('dni', default=None, type=str)
+    if dni is None:
+        return jsonify({"error": "No DNI provided"}), 400
+    
+    hosp_inter = controller.get_hospital_by_dni(dni)
+    
+    if hosp_inter is None:
+        return jsonify({"error": "Hospital not found"}), 404
+    
+    hosp_inter = controller.get_hospital_by_dni(dni)
+    hospitales_distrito = controller.get_hospitales_by_district(hosp_inter.distrito)
+    for hospital in hospitales_distrito:
+        grafo.add_node(hospital)
+    grafo.crear_arista()
+    grafo.ampliar_grafo(hosp_inter.nombre)
+    resultado = grafo.breadth_first_search(hosp_inter.nombre,set())
+    return jsonify(
+        {
+            "nombre": resultado.nombre,
+            "costo_oxigeno": resultado.cost_oxi,
+            "latitud": resultado.lat,
+            "longitud": resultado.lon
+         }
+    )
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
-#Ubicar hospital de paciente internado
-dni = "10893802"
-hosp_inter = controller.get_hospital_by_dni(dni)
-
-print("Hospital Internado:  ", hosp_inter.nombre,"\n\n")
-
-
-
-#Definiendo los hospitales dentro del distrito del paciente internado
-hospitales_distrito = controller.get_hospitales_by_district(hosp_inter.distrito)
-
-#Agregando los hospitales al grafo:
-for hospital in hospitales_distrito:
-    grafo.add_node(hospital)
-
-#Creando las aristas del grafo. Todos los nodos se unen entre si
-grafo.crear_arista()
-
-#Validando los indices de los nodos:
-#print(len(grafo.indices))
-
-#Validar la lista de adyacencia del grafo
-"""for nodo, aristas in grafo.adyacencia.items():
-    
-    print(f"Nodo:  {nodo.nombre}\n\nAristas:  ")
-    for element in aristas:
-        print(f"({element[0].nombre}, {element[1]})")
-    print("\n\n")"""
-
-#Obteniendo el precio optimo de balon de oxigeno
-
-hospital_mejor_precio = grafo.breadth_first_search(hosp_inter.nombre,set())
-#print("Hospital Optimo:  ", resultado.nombre, " -   Precio Oxigeno:  ", resultado.cost_oxi)
-#print("Cantidad Recorrida: ", resultado)
-print(f"Busqueda inicial:  {hospital_mejor_precio.nombre}   Precio: {hospital_mejor_precio.cost_oxi}")
-print(hospital_mejor_precio.lat)
-print(hospital_mejor_precio.lon)
-
-print("---------------------------------------")
-
-
-#Probando el Quick Union
-print("\n\nRealizando busqueda amplificada")
-
-grafo.ampliar_grafo(hosp_inter.nombre)
-print("Total Nodos:  ",len(grafo.nodos))
-print("Distritos Recorridos:  ",grafo.distritos_recorridos)
-
-resultado = grafo.breadth_first_search(hosp_inter.nombre,set())
-#print("Hospital Optimo:  ", resultado.nombre, " -   Precio Oxigeno:  ", resultado.cost_oxi)
-print(f"Nueva Busqueda:  {resultado.nombre}   Precio: {resultado.cost_oxi}")
-
-
-"""grafo.ampliar_grafo(hosp_inter.nombre)
-print("Total Nodos:  ",len(grafo.nodos))
-print("Distritos Recorridos:  ",grafo.distritos_recorridos)
-
-grafo.ampliar_grafo(hosp_inter.nombre)
-print("Total Nodos:  ",len(grafo.nodos))
-print("Distritos Recorridos:  ",grafo.distritos_recorridos)
-
-grafo.ampliar_grafo(hosp_inter.nombre)
-print("Total Nodos:  ",len(grafo.nodos))
-print("Distritos Recorridos:  ",grafo.distritos_recorridos)"""
-
-"""for nodo, aristas in grafo.adyacencia.items():
-    
-    print(f"Nodo:  {nodo.nombre}\n\nAristas:  ")
-    for element in aristas:
-        print(f"({element[0].nombre}, {element[1]})")
-    print("\n\n")
-"""
-
-
-#h = grafo.nodos[27]
-#El objeto hosp_inter no es el mismo al que se encuentra en el nodo, pese a tener los mismos atributos
-#print(h.nombre == hosp_inter.nombre)
-
-
-
-
-
-"""hospitales = controller.get_hospitales()
-
-for hospital in hospitales:
-    grafo.add_node(hospital)
-    #print(f"id: {hospital.id} nombre: {hospital.nombre}" )
-
-grafo.crear_arista()
-
-
-for nodo, aristas in grafo.adyacencia.items():
-    
-    print(f"Nodo:  {nodo.nombre}  Aristas:  ",end=" ")
-    for element in aristas:
-        print(f"({element[0].nombre}, {element[1]})")
-
-cant_hospitales = grafo.breadth_first_search(grafo.nodos[0],set())
-print(cant_hospitales)
-#hospitales_optimos = controller.get_hospitales_by_price(costo_optimo)
-
-
-#for element in hospitales_optimos:
-    #print(f"id:  {element.id}  Nombre:  {element.nombre}  Precio: {element.cost_oxi}")"""
-
-
+    app.run(port=8080)

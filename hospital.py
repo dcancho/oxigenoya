@@ -3,7 +3,7 @@ from mysql.connector import Error
 
 def Conexion():
     try:
-        connection = mysql.connector.connect(host="localhost",user = "root", password = "admin", port="3306",database="prueba")
+        connection = mysql.connector.connect(host="oxigenoya-db.mysql.database.azure.com",user = "oxigenoya", password = "Admin123admin", port="3306",database="prueba")
         if connection.is_connected():
             return connection
     except Error as e:

@@ -6,7 +6,7 @@ from paciente import Paciente
 
 def Conexion():
     try:
-        connection = mysql.connector.connect(host="localhost",user = "root", password = "admin", port="3306",database="prueba")
+        connection = mysql.connector.connect(host="oxigenoya-db.mysql.database.azure.com",user = "oxigenoya", password = "Admin123admin", port="3306",database="prueba")
         if connection.is_connected():
             return connection
     except Error as e:
@@ -18,8 +18,8 @@ class HospitalController:
     def __init__(self):
         
         try:
-            self.connection = mysql.connector.connect(host="localhost",user = "root", password = "admin", port="3306",database="prueba")
-            if self.connection.is_connected():
+            connection = mysql.connector.connect(host="oxigenoya-db.mysql.database.azure.com",user = "oxigenoya", password = "Admin123admin", port="3306",database="prueba")
+            if connection.is_connected():
                 print("Conexion Exitosa")
         except Error as e:
             print(f"Error al conectar a MySQL: {e}")
