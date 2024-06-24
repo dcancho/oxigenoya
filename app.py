@@ -33,7 +33,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/where-patient', methods=['GET'])
+@app.route('/internados', methods=['GET'])
 def mejor_hospital():
     dni = request.args.get('dni', default=None, type=str)
     if dni is None:
@@ -44,13 +44,18 @@ def mejor_hospital():
     if hosp_inter is None:
         return jsonify({"error": "Hospital not found"}), 404
     
+    internado = controller.get_paciente_data(dni)
+    
+    datos_internamiento = controller.get_paciente_internado_data(dni)
+    
     return jsonify(
         {    "id": hosp_inter.id,
-            "cant_oxigeno": 2,
+            "cant_oxigeno": datos_internamiento.cant_oxi,
             "pacienteData": {
-            "id": hosp_inter.id,
-            "nombre": hosp_inter.nombre,
-            "apellidos": hosp_inter.nombre,
+            "id": internado.id,
+            "nombre": internado.nombres,
+            "apellidos": internado.apellidos,
+            "diagnostico": internado.diagnostico
             },
             "hospitalData" : {
                 "id_hospital": hosp_inter.id,

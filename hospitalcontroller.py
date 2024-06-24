@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 from hospital import Hospital
+from internado import Internado
 from paciente import Paciente
 
 
@@ -134,6 +135,24 @@ class HospitalController:
                 apellido = resultado[2]
                 diagnostico = resultado[3]
                 return Paciente(id,nombre,apellido,diagnostico)
+            except Error as e:
+                print(f"Error al insertar en MySQL: {e}")
+            finally:
+                if self.connection.is_connected():
+                    cursor.close()
+    
+    def get_paciente_internado_data(self, dni):
+        self.connection =Conexion()
+        if self.connection is not None:
+            try:
+                cursor = self.connection.cursor()
+                query = "select * from internados where dni = %s"
+                cursor.execute(query,(dni,))
+                resultado = cursor.fetchone()
+                id = resultado[0]
+                id_hospital = resultado[1]
+                cant_oxi = resultado[2]
+                return Internado(id,id_hospital,cant_oxi)
             except Error as e:
                 print(f"Error al insertar en MySQL: {e}")
             finally:
